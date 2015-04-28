@@ -24,6 +24,7 @@ import com.aidangrabe.materialcolorpicker.views.ColorCircleView;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -116,25 +117,12 @@ public class ColorPickerDialogFragment extends DialogFragment {
 
     public void setColorArray(@ArrayRes int colorArray) {
 
-        String[] hexColors = getResources().getStringArray(colorArray);
-        int[] colors = new int[hexColors.length];
-        mColorMap.clear();
+        mColorMap = parseColorArray(colorArray);
+        setColors(new ArrayList<>(mColorMap.keySet()));
 
-        for (int i = 0; i < hexColors.length; i++) {
-            String[] parts = hexColors[i].split("\\|", 2);
-            String hexValue = parts[0];
-            int arrayId = 0;
-            colors[i] = Color.parseColor(hexValue);
-            if (parts.length > 1) {
-                arrayId = getResId(parts[1], R.array.class);
-            }
-            mColorMap.put(colors[i], arrayId);
-        }
-
-        setColors(colors);
     }
 
-    public void setColors(int... colors) {
+    public void setColors(List<Integer> colors) {
 
         int i = 0;
         // change the color of the views
@@ -150,6 +138,34 @@ public class ColorPickerDialogFragment extends DialogFragment {
             mColorViews.get(j).setVisibility(View.GONE);
         }
 
+    }
+
+    /**
+     * Parse the given array of colours into an ordered map. The order of the
+     * array is maintained. The key of the map is the colour as an integer,
+     * and the value is the id of the next array of colours to display, 0 if
+     * no array should come next
+     * @param colorArray the id of the array of colours to parse
+     * @return an ordered map of colour->next_array_id
+     */
+    private LinkedHashMap<Integer, Integer> parseColorArray(@ArrayRes int colorArray) {
+        LinkedHashMap<Integer, Integer> colorMap = new LinkedHashMap<>();
+
+        String[] hexColors = getResources().getStringArray(colorArray);
+        int[] colors = new int[hexColors.length];
+
+        for (int i = 0; i < hexColors.length; i++) {
+            String[] parts = hexColors[i].split("\\|", 2);
+            String hexValue = parts[0];
+            int arrayId = 0;
+            colors[i] = Color.parseColor(hexValue);
+            if (parts.length > 1) {
+                arrayId = getResId(parts[1], R.array.class);
+            }
+            colorMap.put(colors[i], arrayId);
+        }
+
+        return colorMap;
     }
 
     @NonNull
