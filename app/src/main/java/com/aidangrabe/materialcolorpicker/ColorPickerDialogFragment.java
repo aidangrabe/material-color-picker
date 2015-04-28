@@ -11,11 +11,9 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
@@ -46,29 +44,34 @@ public class ColorPickerDialogFragment extends DialogFragment {
         void onColorSelected(int color);
     }
 
-    private final View.OnTouchListener mColorTouchListener = new View.OnTouchListener() {
+    // the click listener for when a color is selected
+    private final View.OnClickListener mColorOnClickListener = new View.OnClickListener() {
+
         @Override
-        public boolean onTouch(View view, MotionEvent event) {
+        public void onClick(View view) {
 
             ColorCircleView colorView = (ColorCircleView) view;
-            final int arrayId = mColorMap.get(colorView.getColor());
+                final int arrayId = mColorMap.get(colorView.getColor());
 
-            if (arrayId == 0) {
-                dismiss();
+                // if no sub array is found, return the clor
+                if (arrayId == 0) {
+                    dismiss();
 
-                if (mListener != null) {
-                    mListener.onColorSelected(colorView.getColor());
+                    if (mListener != null) {
+                        mListener.onColorSelected(colorView.getColor());
+                    }
+
+                }
+                // if a sub array is found, load up the colors from that array
+                else {
+
+                    // TODO: animate
+                    setColorArray(arrayId);
+
                 }
 
-            } else {
-
-                // TODO: animate
-                setColorArray(arrayId);
-
-            }
-
-            return false;
         }
+
     };
 
     @Override
@@ -79,6 +82,7 @@ public class ColorPickerDialogFragment extends DialogFragment {
         mColorViews = new ArrayList<>();
         mColorMap = new HashMap<>();
 
+        // the size of the color views
         int size =  (int) dp2px(48);
         LinearLayout.LayoutParams colorParams = new LinearLayout.LayoutParams(size, size);
         colorParams.setMargins(5, 5, 5, 5);
@@ -86,15 +90,18 @@ public class ColorPickerDialogFragment extends DialogFragment {
         LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
 
+        // create the rows
         for (int i = 0; i < NUM_ROWS; i++) {
             LinearLayout rowLayout = new LinearLayout(getActivity());
             rowLayout.setLayoutParams(rowParams);
             rowLayout.setGravity(Gravity.CENTER_HORIZONTAL);
             rowLayout.setOrientation(LinearLayout.HORIZONTAL);
+
+            // create the colours within the rows
             for (int j = 0; j < CIRCLES_PER_ROW; j++) {
                 ColorCircleView colorView = new ColorCircleView(getActivity());
                 colorView.setLayoutParams(colorParams);
-                colorView.setOnTouchListener(mColorTouchListener);
+                colorView.setOnClickListener(mColorOnClickListener);
                 rowLayout.addView(colorView);
                 mColorViews.add(colorView);
             }
@@ -108,7 +115,7 @@ public class ColorPickerDialogFragment extends DialogFragment {
     }
 
     public void setColorArray(@ArrayRes int colorArray) {
-        Log.d("D", "Getting array: " + colorArray);
+
         String[] hexColors = getResources().getStringArray(colorArray);
         int[] colors = new int[hexColors.length];
         mColorMap.clear();
@@ -120,7 +127,6 @@ public class ColorPickerDialogFragment extends DialogFragment {
             colors[i] = Color.parseColor(hexValue);
             if (parts.length > 1) {
                 arrayId = getResId(parts[1], R.array.class);
-                Log.d("D", "ArrayId = " + arrayId);
             }
             mColorMap.put(colors[i], arrayId);
         }
@@ -131,12 +137,15 @@ public class ColorPickerDialogFragment extends DialogFragment {
     public void setColors(int... colors) {
 
         int i = 0;
+        // change the color of the views
         for (int color : colors) {
-            mColorViews.get(i).setColor(color);
-            mColorViews.get(i).setVisibility(View.VISIBLE);
+            ColorCircleView colorView = mColorViews.get(i);
+            colorView.setColor(color);
+            colorView.setVisibility(View.VISIBLE);
             i++;
         }
 
+        // hide any extra views
         for (int j = i; j < mColorViews.size(); j++) {
             mColorViews.get(j).setVisibility(View.GONE);
         }
@@ -173,12 +182,24 @@ public class ColorPickerDialogFragment extends DialogFragment {
         }
     }
 
+    /**
+     * Convert dp to pixels
+     * @param dp the dp value to convert
+     * @return the corresponding number of pixels
+     */
     private float dp2px(float dp) {
 
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, displayMetrics);
 
     }
+
+    /**
+     * Get the resource identifier of a given resource name from the R file
+     * @param resName the name of the resource
+     * @param c the R class to lookup the resource on eg. R.drawable.class|R.string.class
+     * @return the id of the given resource or 0
+     */
     public static int getResId(String resName, Class<?> c) {
 
         try {
@@ -186,7 +207,7 @@ public class ColorPickerDialogFragment extends DialogFragment {
             return idField.getInt(idField);
         } catch (Exception e) {
             e.printStackTrace();
-            return -1;
+            return 0;
         }
     }
 
