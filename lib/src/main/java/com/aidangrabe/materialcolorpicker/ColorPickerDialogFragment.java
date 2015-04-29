@@ -61,6 +61,8 @@ public class ColorPickerDialogFragment extends DialogFragment {
                 // if no sub array is found, return the colour
                 if (arrayId == 0) {
 
+                    dismiss();
+
                     if (mListener != null) {
                         mListener.onColorSelected(colorView.getColor());
                     }
