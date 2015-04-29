@@ -14,6 +14,7 @@ import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewAnimationUtils;
 import android.view.ViewGroup;
@@ -46,17 +47,19 @@ public class ColorPickerDialogFragment extends DialogFragment {
     }
 
     // the click listener for when a color is selected
-    private final View.OnClickListener mColorOnClickListener = new View.OnClickListener() {
+    private final View.OnTouchListener mColorOnTouchListener = new View.OnTouchListener() {
 
         @Override
-        public void onClick(View view) {
+        public boolean onTouch(View view, MotionEvent event) {
 
-            ColorCircleView colorView = (ColorCircleView) view;
+            // act like an onClick listener, but with a MotionEvent
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+
+                ColorCircleView colorView = (ColorCircleView) view;
                 final int arrayId = mColorMap.get(colorView.getColor());
 
-                // if no sub array is found, return the clor
+                // if no sub array is found, return the colour
                 if (arrayId == 0) {
-                    dismiss();
 
                     if (mListener != null) {
                         mListener.onColorSelected(colorView.getColor());
@@ -67,9 +70,14 @@ public class ColorPickerDialogFragment extends DialogFragment {
                 else {
 
                     // TODO: animate
+
                     setColorArray(arrayId);
 
                 }
+
+            }
+
+            return false;
 
         }
 
@@ -102,7 +110,7 @@ public class ColorPickerDialogFragment extends DialogFragment {
             for (int j = 0; j < CIRCLES_PER_ROW; j++) {
                 ColorCircleView colorView = new ColorCircleView(getActivity());
                 colorView.setLayoutParams(colorParams);
-                colorView.setOnClickListener(mColorOnClickListener);
+                colorView.setOnTouchListener(mColorOnTouchListener);
                 rowLayout.addView(colorView);
                 mColorViews.add(colorView);
             }
@@ -177,25 +185,33 @@ public class ColorPickerDialogFragment extends DialogFragment {
         View view = dialog.getWindow().getDecorView();
 
         if (view != null) {
-            addRevealAnimationToView(view);
+            addRevealAnimationToView(view, 0, 0);
         }
 
         return dialog;
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private void addRevealAnimationToView(View view) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            view.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
-                @Override
-                public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
-                    v.removeOnLayoutChangeListener(this);
-                    Animator reveal = ViewAnimationUtils.createCircularReveal(v, 0, 0, 0, v.getWidth());
-                    reveal.setDuration(300);
-                    reveal.start();
-                }
-            });
+    private void addRevealAnimationToView(View view, final int centerX, final int centerY) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            getDialog().dismiss();
+            return;
         }
+
+        view.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View v, int left, int top, int right, int bottom, int oldLeft, int oldTop, int oldRight, int oldBottom) {
+
+                final float startRadius, endRadius;
+                startRadius = 0;
+                endRadius = v.getWidth();
+
+                v.removeOnLayoutChangeListener(this);
+                Animator reveal = ViewAnimationUtils.createCircularReveal(v, centerX, centerY, startRadius, endRadius);
+                reveal.setDuration(300);
+                reveal.start();
+            }
+        });
     }
 
     /**
