@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <EditTextPreference
+        android:key="edittext"
+        android:title="Another Preference"
+        android:summary="Just another pref"
+        />
+
+    <com.aidangrabe.materialcolorpicker.ColorPickerPreference
+        android:title="Background Color"
+        android:summary="The background color of the application"
+        android:key="bg_color"
+        android:defaultValue="#00FF00"
+        />
+
+    <CheckBoxPreference
+        android:key="checkbox"
+        android:title="Another Preference"
+        android:summary="Just another pref"
+        />
+
+</PreferenceScreen>

@@ -1,5 +1,6 @@
 package com.aidangrabe.demo;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
@@ -54,6 +55,8 @@ public class MainActivity  extends ActionBarActivity implements ColorPickerDialo
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent settingsIntent = new Intent(this, SettingsActivity.class);
+            startActivity(settingsIntent);
             return true;
         }
 
