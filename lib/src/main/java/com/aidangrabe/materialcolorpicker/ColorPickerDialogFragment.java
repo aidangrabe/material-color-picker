@@ -196,7 +196,11 @@ public class ColorPickerDialogFragment extends DialogFragment {
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void addRevealAnimationToView(View view, final int centerX, final int centerY) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            getDialog().dismiss();
+            // if the dialog is null, we are showing the dialog
+            // if the dialog is not null, we should dismiss it
+            if (getDialog() != null) {
+                getDialog().dismiss();
+            }
             return;
         }
 
